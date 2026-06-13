@@ -17,18 +17,21 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Create Skeleton Android Project
+      - name: Build Clean Project
         run: |
-          # Этот шаг сам создаёт правильную структуру папок, если её нет
-          flutter create --platforms=android . --force
-
-      - name: Restore original main.dart
-        run: |
-          # Возвращаем наш файл с промокодом на место, если flutter create его затер
-          git checkout HEAD -- lib/main.dart || echo "Файл на месте"
-
-      - name: Build APK
-        run: |
+          # Сохраняем наш рабочий main.dart во временную память
+          cp lib/main.dart /tmp/saved_main.dart
+          
+          # Удаляем всё лишнее, чтобы старые ошибки не мешали
+          rm -rf *
+          
+          # Создаем идеально чистый проект Flutter с нуля
+          flutter create --platforms=android .
+          
+          # Возвращаем наш код с промокодом на его законное место
+          cp /tmp/saved_main.dart lib/main.dart
+          
+          # Запускаем чистую сборку
           flutter pub get
           flutter build apk --release
 
