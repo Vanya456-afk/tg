@@ -4,27 +4,36 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      
+      - uses: actions/checkout@v4
+
       - name: Set up Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
-          
+
       - name: Set up Flutter
-        uses: actions/subosito/flutter-action@v2
+        uses: subosito/flutter-action@v2.12.0
         with:
-          flutter-version: '3.19.0'
           channel: 'stable'
-          
+
+      - name: Create Skeleton Android Project
+        run: |
+          # Этот шаг сам создаёт правильную структуру папок, если её нет
+          flutter create --platforms=android . --force
+
+      - name: Restore original main.dart
+        run: |
+          # Возвращаем наш файл с промокодом на место, если flutter create его затер
+          git checkout HEAD -- lib/main.dart || echo "Файл на месте"
+
       - name: Build APK
         run: |
           flutter pub get
           flutter build apk --release
-          
+
       - name: Upload APK Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
