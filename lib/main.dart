@@ -1,133 +1,211 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(MaterialApp(
-    home: CustomTelegramApp(),
-    theme: ThemeData.dark(),
-    debugShowCheckedModeBanner: false,
-  ));
+  runApp(const MyApp());
 }
 
-class CustomTelegramApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
-  _CustomTelegramAppState createState() => _CustomTelegramAppState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Vasanin Brawl App',
+      theme: ThemeData.dark().copyWith(
+        primaryColor: Colors.deepPurple,
+        scaffoldBackgroundColor: const Color(0xFF121212),
+      ),
+      home: const HomeScreen(),
+      debugShowCheckedModeBanner: false,
+    );
+  }
 }
 
-class _CustomTelegramAppState extends State<CustomTelegramApp> {
-  // Данные приложения
-  int starsBalance = 150;
-  List<String> myGifts = ["🔥 Статус"];
-  List<String> vladsGifts = ["🎈 Шарик"];
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _starsBalance = 500;
   final TextEditingController _promoController = TextEditingController();
+  bool _isPromoUsed = false;
 
-  // Логика промокода
-  void activatePromo() {
-    String code = _promoController.text.trim();
-    if (code == "only2026") {
+  final List<Map<String, dynamic>> _gifts = [
+    {'name': 'Обычный ящик', 'price': 100, 'icon': Icons.card_giftcard},
+    {'name': 'Большой ящик', 'price': 250, 'icon': Icons.shopping_bag},
+    {'name': 'Мегаящик', 'price': 500, 'icon': Icons.workspace_premium},
+  ];
+
+  void _checkPromo() {
+    if (_promoController.text.trim() == 'only2026') {
+      if (!_isPromoUsed) {
+        setState(() {
+          _starsBalance += 1000;
+          _isPromoUsed = true;
+        });
+        _showSnackBar('Промокод успешно активирован! +1000 Звёзд 🌟', Colors.green);
+      } else {
+        _showSnackBar('Вы уже активировали этот промокод!', Colors.orange);
+      }
+    } else {
+      _showSnackBar('Неверный промокод!', Colors.red);
+    }
+    _promoController.clear();
+  }
+
+  void _buyGift(String name, int price) {
+    if (_starsBalance >= price) {
       setState(() {
-        starsBalance += 500;
+        _starsBalance -= price;
       });
-      _promoController.clear();
+      _showSnackBar('Вы успешно приобрели "$name"! 🎉', Colors.green);
+    } else {
+      _showSnackBar('Недостаточно звёзд для покупки!', Colors.red);
     }
   }
 
-  // Логика покупки
-  void buyGift(String icon, String name, int price) {
-    if (starsBalance >= price) {
-      setState(() {
-        starsBalance -= price;
-        myGifts.add("$icon $name");
-      });
-    }
-  }
-
-  // Логика отправки другу
-  void sendToVlad(String gift) {
-    if (myGifts.contains(gift)) {
-      setState(() {
-        myGifts.remove(gift);
-        vladsGifts.add(gift);
-      });
-    }
+  void _showSnackBar(String text, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(text, style: const TextStyle(fontSize: 16)),
+        backgroundColor: color,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0E1621),
       appBar: AppBar(
-        title: const Text("Custom Telegram 2026"),
-        backgroundColor: const Color(0xFF17212B),
-        centerTitle: true,
+        title: const Text('Vasanin Brawl Profile'),
+        backgroundColor: Colors.deepPurple,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Row(
+              children: [
+                const Icon(Icons.star, color: Colors.amber, size: 28),
+                const SizedBox(width: 4),
+                Text(
+                  '$_starsBalance',
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Виджет профиля
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF17212B),
+              Card(
+                color: Colors.deepPurple.withOpacity(0.2),
+                shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
+                  side: const BorderSide(color: Colors.deepPurple),
                 ),
-                child: Column(
-                  children: [
-                    const CircleAvatar(
-                      radius: 35,
-                      backgroundColor: Colors.blue,
-                      child: Text("DEV", style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold)),
-                    ),
-                    const SizedBox(height: 10),
-                    Text("Баланс: $starsBalance ⭐️", style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.amber)),
-                    const SizedBox(height: 15),
-                    const Text("Твоя витрина подарков:", style: TextStyle(color: Colors.grey)),
-                    const SizedBox(height: 8),
-                    Text(myGifts.isEmpty ? "Пусто" : myGifts.join("   "), style: const TextStyle(fontSize: 20)),
-                  ],
+                child: const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 35,
+                        backgroundColor: Colors.deepPurple,
+                        child: Icon(Icons.person, size: 40, color: Colors.white),
+                      ),
+                      SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Разработчик',
+                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            'Статус: В сети',
+                            style: TextStyle(color: Colors.greenAccent),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 20),
-
-              // Поле ввода промокода
-              const Text(" Активация промокода:", style: TextStyle(fontSize: 16, color: Colors.grey)),
-              const SizedBox(height: 5),
+              const SizedBox(height: 24),
+              const Text(
+                'Активация промокода',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _promoController,
                       decoration: InputDecoration(
-                        hintText: "Введите код...",
+                        hintText: 'Введите промокод',
                         filled: true,
-                        fillColor: const Color(0xFF17212B),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                        fillColor: Colors.grey[900],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 10),
                   ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20)),
-                    onPressed: activatePromo,
-                    child: const Text("OK"),
+                    onPressed: _checkPromo,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text('ОК', style: TextStyle(fontSize: 16)),
                   ),
                 ],
               ),
-              const SizedBox(height: 25),
-
-              // Витрина магазина
-              const Text(" Магазин кастомных подарков:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 10),
-              buildGiftRow("👑", "Корона", 100),
-              buildGiftRow("🏆", "Кубок", 50),
-              buildGiftRow("💻", "Скрипт", 15),
-              const SizedBox(height: 25),
-
-              // Кнопки отправки подарка другу
-              const Text(" Отправить подарок другу (Влад):", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 10),
-              myGifts.isEmpty 
-                ? const Text("У тебя нет подарков для отправки", style
+              const SizedBox(height: 32),
+              const Text(
+                'Магазин подарков',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _gifts.length,
+                itemBuilder: (context, index) {
+                  final gift = _gifts[index];
+                  return Card(
+                    color: Colors.grey[900],
+                    margin: const EdgeInsets.only(bottom: 10),
+                    child: ListTile(
+                      leading: Icon(gift['icon'], color: Colors.amber, size: 30),
+                      title: Text(gift['name'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text('${gift['price']} Звёзд'),
+                      trailing: ElevatedButton(
+                        onPressed: () => _buyGift(gift['name'], gift['price']),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                        child: const Text('Купить'),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
