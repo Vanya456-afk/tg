@@ -1,0 +1,40 @@
+name: Build APK
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2.12.0
+        with:
+          channel: 'stable'
+
+      - name: Build Clean APK
+        run: |
+          cp lib/main.dart /tmp/saved_main.dart
+          rm -rf *
+          flutter create --platforms=android .
+          cp /tmp/saved_main.dart lib/main.dart
+          flutter pub get
+          flutter build apk --release
+
+      - name: Send Document to Telegram
+        run: |
+          curl -F chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+               -F document=@"build/app/outputs/flutter-apk/app-release.apk" \
+               -F caption="Твой Telegram готов! 🚀 Подарки и профиль на месте." \
+               https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendDocument
