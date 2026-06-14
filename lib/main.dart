@@ -25,7 +25,6 @@ class TelegramApp extends StatelessWidget {
   }
 }
 
-// Главный экран
 class MainHomeScreen extends StatefulWidget {
   const MainHomeScreen({super.key});
 
@@ -34,10 +33,8 @@ class MainHomeScreen extends StatefulWidget {
 }
 
 class _MainHomeScreenState extends State<MainHomeScreen> {
-  // Наш баланс Telegram Stars (сделаем изначально 500 для тестов)
   int telegramStars = 500;
 
-  // Функция для покупки подарка
   void buyGift(int price, String giftName) {
     if (telegramStars >= price) {
       setState(() {
@@ -98,7 +95,6 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
                 );
               },
             ),
-            // НАШ НОВЫЙ ПУНКТ: ПОДАРКИ
             ListTile(
               leading: const Icon(Icons.card_giftcard, color: Colors.purple),
               title: const Text('Подарки', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -148,7 +144,6 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
   }
 }
 
-// ЭКРАН ПОДАРКОВ В СТИЛЕ ТЕЛЕГРАМ
 class TelegramGiftsScreen extends StatelessWidget {
   final int starsBalance;
   final Function(int, String) onBuyGift;
@@ -161,7 +156,6 @@ class TelegramGiftsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Список наших подарков с ценами и эмодзи
     final List<Map<String, dynamic>> gifts = [
       {"name": "Обычный подарок", "emoji": "🎁", "price": 15, "color": Colors.blue.shade50},
       {"name": "Редкий подарок", "emoji": "🎨", "price": 25, "color": Colors.green.shade50},
@@ -173,13 +167,12 @@ class TelegramGiftsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Подарки', style: TextStyle(color: Colors.white)),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.close, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: Column(
         children: [
-          // Верхняя плашка с балансом звёзд
           Container(
             width: double.infinity,
             color: const Color(0xFF517DA2),
@@ -207,7 +200,7 @@ class TelegramGiftsScreen extends StatelessWidget {
           ),
           const Padding(
             padding: EdgeInsets.all(16.0),
-            child: Alignment(
+            child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
                 'Доступные подарки:',
@@ -215,13 +208,12 @@ class TelegramGiftsScreen extends StatelessWidget {
               ),
             ),
           ),
-          // Сетка с подарками
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, // 2 подарка в ряд
+                  crossAxisCount: 2,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
                   childAspectRatio: 0.85,
@@ -240,7 +232,7 @@ class TelegramGiftsScreen extends StatelessWidget {
                         children: [
                           Text(
                             gift["emoji"],
-                            style: const TextStyle(fontSize: 45), // Крупный эмодзи подарка
+                            style: const TextStyle(fontSize: 45),
                           ),
                           Text(
                             gift["name"],
@@ -279,7 +271,6 @@ class TelegramGiftsScreen extends StatelessWidget {
   }
 }
 
-// Экран профиля настройки
 class TelegramProfileScreen extends StatelessWidget {
   const TelegramProfileScreen({super.key});
 
