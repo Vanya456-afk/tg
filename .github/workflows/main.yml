@@ -1,4 +1,4 @@
-name: Build APK
+name: Build APK & Send to Telegram
 on: [push, workflow_dispatch]
 jobs:
   build:
@@ -19,25 +19,16 @@ jobs:
 
       - name: Build Clean Project
         run: |
-          # Сохраняем наш рабочий main.dart во временную память
           cp lib/main.dart /tmp/saved_main.dart
-          
-          # Удаляем старые файлы, чтобы не было конфликтов
           rm -rf *
-          
-          # Создаем чистый проект Flutter с нуля
           flutter create --platforms=android .
-          
-          # Возвращаем наш код с промокодом на место
           cp /tmp/saved_main.dart lib/main.dart
-          
-          # Собираем приложение
           flutter pub get
           flutter build apk --release
 
-      - name: Upload Clean APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: my-brawl-app
-          path: build/app/outputs/flutter-apk/app-release.apk
-          compression-level: 0
+      - name: Send APK to Telegram
+        run: |
+          curl -F chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+               -F document=@"build/app/outputs/flutter-apk/app-release.apk" \
+               -F caption="Твоё Brawl-приложение готово! 🚀 Нажимай и устанавливай." \
+               https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendDocument
