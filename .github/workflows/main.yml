@@ -1,35 +1,33 @@
-name: Telegram Build
+name: Build and Send APK
 on: [push, workflow_dispatch]
 
 jobs:
-  build_apk:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout project
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install Java
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Install Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2.16.0
         with:
           channel: 'stable'
 
-      - name: Build Code
-        run: |
-          cp lib/main.dart /tmp/saved.dart
-          rm -rf *
-          flutter create --platforms=android --org com.mytelegram.dev .
-          cp /tmp/saved.dart lib/main.dart
-          flutter pub get
-          flutter build apk --release
+      - name: Install Dependencies
+        run: flutter pub get
 
-      - name: Send to TG
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Send APK to Telegram
         run: |
           curl -F chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
                -F document=@"build/app/outputs/flutter-apk/app-release.apk" \
+               -F caption="Твой Telegram успешно собран! 🚀" \
                https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendDocument
