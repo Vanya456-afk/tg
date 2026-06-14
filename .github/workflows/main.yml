@@ -22,21 +22,22 @@ jobs:
           # Сохраняем наш рабочий main.dart во временную память
           cp lib/main.dart /tmp/saved_main.dart
           
-          # Удаляем всё лишнее, чтобы старые ошибки не мешали
+          # Удаляем старые файлы, чтобы не было конфликтов
           rm -rf *
           
-          # Создаем идеально чистый проект Flutter с нуля
+          # Создаем чистый проект Flutter с нуля
           flutter create --platforms=android .
           
-          # Возвращаем наш код с промокодом на его законное место
+          # Возвращаем наш код с промокодом на место
           cp /tmp/saved_main.dart lib/main.dart
           
-          # Запускаем чистую сборку
+          # Собираем приложение
           flutter pub get
           flutter build apk --release
 
-      - name: Upload APK Artifact
+      - name: Upload Clean APK
         uses: actions/upload-artifact@v4
         with:
-          name: release-apk
+          name: my-brawl-app
           path: build/app/outputs/flutter-apk/app-release.apk
+          compression-level: 0
