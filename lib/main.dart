@@ -13,8 +13,8 @@ class TelegramApp extends StatelessWidget {
       title: 'Telegram Clone',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: const Color(0xFF517DA2), // Синий цвет TG
-        scaffoldBackgroundColor: const Color(0xFFEFF3F6), // Светло-серый фон для настроек
+        primaryColor: const Color(0xFF517DA2),
+        scaffoldBackgroundColor: const Color(0xFFEFF3F6),
         appBarTheme: const AppBarTheme(
           backgroundColor: const Color(0xFF517DA2),
           elevation: 0,
@@ -25,9 +25,39 @@ class TelegramApp extends StatelessWidget {
   }
 }
 
-// Главный экран (пустой, с рабочим боковым меню)
-class MainHomeScreen extends StatelessWidget {
+// Главный экран
+class MainHomeScreen extends StatefulWidget {
   const MainHomeScreen({super.key});
+
+  @override
+  State<MainHomeScreen> createState() => _MainHomeScreenState();
+}
+
+class _MainHomeScreenState extends State<MainHomeScreen> {
+  // Наш баланс Telegram Stars (сделаем изначально 500 для тестов)
+  int telegramStars = 500;
+
+  // Функция для покупки подарка
+  void buyGift(int price, String giftName) {
+    if (telegramStars >= price) {
+      setState(() {
+        telegramStars -= price;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Вы успешно купили "$giftName" за $price ⭐️!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Недостаточно звёзд ⭐️!'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,9 +67,7 @@ class MainHomeScreen extends StatelessWidget {
           'Telegram',
           style: TextStyle(fontWeight: FontWeight.w500, fontSize: 21, color: Colors.white),
         ),
-        // Теперь кнопка меню автоматически открывает Drawer (шторку)
       ),
-      // Боковое меню как в ТГ
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -54,19 +82,44 @@ class MainHomeScreen extends StatelessWidget {
                 ),
               ),
               accountName: const Text(
-                'Твой Профиль',
+                'Разработчик',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
-              accountEmail: const Text('@username'),
+              accountEmail: Text('⭐️ Баланс: $telegramStars звёзд'),
             ),
             ListTile(
               leading: const Icon(Icons.person_outline, color: Colors.grey),
               title: const Text('Мой Профиль', style: TextStyle(fontSize: 16)),
               onTap: () {
-                Navigator.pop(context); // Закрываем меню
+                Navigator.pop(context);
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const TelegramProfileScreen()),
+                );
+              },
+            ),
+            // НАШ НОВЫЙ ПУНКТ: ПОДАРКИ
+            ListTile(
+              leading: const Icon(Icons.card_giftcard, color: Colors.purple),
+              title: const Text('Подарки', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              trailing: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.purple.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text('NEW', style: TextStyle(color: Colors.purple, fontSize: 10, fontWeight: FontWeight.bold)),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TelegramGiftsScreen(
+                      starsBalance: telegramStars,
+                      onBuyGift: buyGift,
+                    ),
+                  ),
                 );
               },
             ),
@@ -86,7 +139,7 @@ class MainHomeScreen extends StatelessWidget {
       ),
       body: const Center(
         child: Text(
-          'Чаты удалены.\nОткрой меню слева, чтобы перейти в Профиль!',
+          'Открой меню слева,\nчтобы посмотреть Подарки или Профиль!',
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.grey, fontSize: 16),
         ),
@@ -95,7 +148,138 @@ class MainHomeScreen extends StatelessWidget {
   }
 }
 
-// Настоящий экран профиля в стиле Telegram
+// ЭКРАН ПОДАРКОВ В СТИЛЕ ТЕЛЕГРАМ
+class TelegramGiftsScreen extends StatelessWidget {
+  final int starsBalance;
+  final Function(int, String) onBuyGift;
+
+  const TelegramGiftsScreen({
+    super.key,
+    required this.starsBalance,
+    required this.onBuyGift,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Список наших подарков с ценами и эмодзи
+    final List<Map<String, dynamic>> gifts = [
+      {"name": "Обычный подарок", "emoji": "🎁", "price": 15, "color": Colors.blue.shade50},
+      {"name": "Редкий подарок", "emoji": "🎨", "price": 25, "color": Colors.green.shade50},
+      {"name": "Эпический подарок", "emoji": "⚡", "price": 50, "color": Colors.orange.shade50},
+      {"name": "Легендарный подарок", "emoji": "👑", "price": 100, "color": Colors.purple.shade50},
+    ];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Подарки', style: TextStyle(color: Colors.white)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Column(
+        children: [
+          // Верхняя плашка с балансом звёзд
+          Container(
+            width: double.infinity,
+            color: const Color(0xFF517DA2),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                const Text(
+                  'Ваш баланс',
+                  style: TextStyle(color: Colors.white70, fontSize: 16),
+                ),
+                const SizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('⭐️ ', style: TextStyle(fontSize: 26)),
+                    Text(
+                      '$starsBalance',
+                      style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+                    ),
+                    const Text(' звёзд', style: TextStyle(color: Colors.white, fontSize: 20)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Alignment(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Доступные подарки:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black80),
+              ),
+            ),
+          ),
+          // Сетка с подарками
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2, // 2 подарка в ряд
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 0.85,
+                ),
+                itemCount: gifts.length,
+                itemBuilder: (context, index) {
+                  final gift = gifts[index];
+                  return Card(
+                    color: gift["color"],
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Text(
+                            gift["emoji"],
+                            style: const TextStyle(fontSize: 45), // Крупный эмодзи подарка
+                          ),
+                          Text(
+                            gift["name"],
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            textAlign: TextAlign.center,
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF517DA2),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            ),
+                            onPressed: () {
+                              onBuyGift(gift["price"], gift["name"]);
+                            },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text('⭐️ ', style: TextStyle(fontSize: 12)),
+                                Text('${gift["price"]}'),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Экран профиля настройки
 class TelegramProfileScreen extends StatelessWidget {
   const TelegramProfileScreen({super.key});
 
@@ -106,13 +290,12 @@ class TelegramProfileScreen extends StatelessWidget {
         title: const Text('Настройки', style: TextStyle(color: Colors.white)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context), // Кнопка назад теперь работает!
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Верхний блок профиля (Аватарка и Имя)
             Container(
               color: const Color(0xFF517DA2),
               width: double.infinity,
@@ -122,32 +305,21 @@ class TelegramProfileScreen extends StatelessWidget {
                   CircleAvatar(
                     radius: 36,
                     backgroundColor: Colors.white24,
-                    child: Text(
-                      'U',
-                      style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
-                    ),
+                    child: Text('U', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
                   ),
                   SizedBox(width: 20),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Разработчик',
-                        style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-                      ),
+                      Text('Разработчик', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
                       SizedBox(height: 4),
-                      Text(
-                        'в сети',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
-                      ),
+                      Text('в сети', style: TextStyle(color: Colors.white70, fontSize: 14)),
                     ],
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 12),
-
-            // Блок «Аккаунт»
             Container(
               color: Colors.white,
               child: const Column(
@@ -155,54 +327,13 @@ class TelegramProfileScreen extends StatelessWidget {
                 children: [
                   Padding(
                     padding: EdgeInsets.only(left: 16, top: 12, bottom: 4),
-                    child: Text(
-                      'Аккаунт',
-                      style: TextStyle(color: Color(0xFF517DA2), fontWeight: FontWeight.bold, fontSize: 15),
-                    ),
+                    child: Text('Аккаунт', style: TextStyle(color: Color(0xFF517DA2), fontWeight: FontWeight.bold, fontSize: 15)),
                   ),
-                  ListTile(
-                    title: Text('+380 99 123 4567'),
-                    subtitle: Text('Нажмите, чтобы изменить номер телефона'),
-                  ),
+                  ListTile(title: Text('+380 99 123 4567'), subtitle: Text('Нажмите, чтобы изменить номер телефона')),
                   Divider(height: 1, indent: 16),
-                  ListTile(
-                    title: Text('@my_telegram_dev'),
-                    subtitle: Text('Имя пользователя'),
-                  ),
+                  ListTile(title: Text('@my_telegram_dev'), subtitle: Text('Имя пользователя')),
                   Divider(height: 1, indent: 16),
-                  ListTile(
-                    title: Text('О себе'),
-                    subtitle: Text('Создаю свой собственный Telegram на Flutter 🚀'),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Блок «Настройки»
-            Container(
-              color: Colors.white,
-              child: const Column(
-                children: [
-                  ListTile(
-                    leading: Icon(Icons.notifications_none, color: Colors.grey),
-                    title: Text('Уведомления и звуки'),
-                  ),
-                  Divider(height: 1, indent: 64),
-                  ListTile(
-                    leading: Icon(Icons.lock_outline, color: Colors.grey),
-                    title: Text('Конфиденциальность'),
-                  ),
-                  Divider(height: 1, indent: 64),
-                  ListTile(
-                    leading: Icon(Icons.pie_chart_outline, color: Colors.grey),
-                    title: Text('Данные и память'),
-                  ),
-                  Divider(height: 1, indent: 64),
-                  ListTile(
-                    leading: Icon(Icons.chat_bubble_outline, color: Colors.grey),
-                    title: Text('Настройки чатов'),
-                  ),
+                  ListTile(title: Text('О себе'), subtitle: Text('Создаю свой собственный Telegram на Flutter 🚀')),
                 ],
               ),
             ),
