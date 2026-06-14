@@ -12,112 +12,202 @@ class TelegramApp extends StatelessWidget {
     return MaterialApp(
       title: 'Telegram Clone',
       debugShowCheckedModeBanner: false,
-      // Задаем фирменную тему Telegram
       theme: ThemeData(
-        primaryColor: const Color(0xFF517DA2), // Классический синий цвет Telegram
+        primaryColor: const Color(0xFF517DA2), // Синий цвет TG
+        scaffoldBackgroundColor: const Color(0xFFEFF3F6), // Светло-серый фон для настроек
         appBarTheme: const AppBarTheme(
           backgroundColor: const Color(0xFF517DA2),
-          elevation: 1,
+          elevation: 0,
         ),
       ),
-      home: const ChatListScreen(),
+      home: const MainHomeScreen(),
     );
   }
 }
 
-// Экран со списком чатов
-class ChatListScreen extends StatelessWidget {
-  const ChatListScreen({super.key});
+// Главный экран (пустой, с рабочим боковым меню)
+class MainHomeScreen extends StatelessWidget {
+  const MainHomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Список фейковых чатов для красивого дизайна
-    final List<Map<String, String>> chats = [
-      {"name": "Влад", "message": "Го в Бравл? Скины новые вышли!", "time": "12:40", "unread": "2"},
-      {"name": "Аня", "message": "Привет! Ты написал код для бота? 😊", "time": "11:15", "unread": "0"},
-      {"name": "Telegram Bot", "message": "Твоё приложение успешно собрано!", "time": "Вчера", "unread": "0"},
-      {"name": "Команда Разработки", "message": "Обновление дизайна до версии 2026.1", "time": "Пятница", "unread": "5"},
-    ];
-
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           'Telegram',
           style: TextStyle(fontWeight: FontWeight.w500, fontSize: 21, color: Colors.white),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white), // Кнопка меню слева
-          onPressed: () {},
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.white), // Поиск справа
-            onPressed: () {},
-          ),
-        ],
+        // Теперь кнопка меню автоматически открывает Drawer (шторку)
       ),
-      body: ListView.separated(
-        itemCount: chats.length,
-        separatorBuilder: (context, index) => const Divider(height: 1, indent: 72), // Тонкая линия между чатами
-        itemBuilder: (context, index) {
-          final chat = chats[index];
-          final hasUnread = chat["unread"] != "0";
+      // Боковое меню как в ТГ
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            UserAccountsDrawerHeader(
+              decoration: const BoxDecoration(color: Color(0xFF517DA2)),
+              currentAccountPicture: const CircleAvatar(
+                backgroundColor: Colors.white,
+                child: Text(
+                  'Я',
+                  style: TextStyle(fontSize: 28, color: Color(0xFF517DA2), fontWeight: FontWeight.bold),
+                ),
+              ),
+              accountName: const Text(
+                'Твой Профиль',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              accountEmail: const Text('@username'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.person_outline, color: Colors.grey),
+              title: const Text('Мой Профиль', style: TextStyle(fontSize: 16)),
+              onTap: () {
+                Navigator.pop(context); // Закрываем меню
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const TelegramProfileScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings_outlined, color: Colors.grey),
+              title: const Text('Настройки', style: TextStyle(fontSize: 16)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const TelegramProfileScreen()),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+      body: const Center(
+        child: Text(
+          'Чаты удалены.\nОткрой меню слева, чтобы перейти в Профиль!',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.grey, fontSize: 16),
+        ),
+      ),
+    );
+  }
+}
 
-          return ListTile(
-            leading: CircleAvatar(
-              radius: 24,
-              backgroundColor: Colors.blueAccent.shade100,
-              child: Text(
-                chat["name"]![0], // Первая буква имени на аватарке
-                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+// Настоящий экран профиля в стиле Telegram
+class TelegramProfileScreen extends StatelessWidget {
+  const TelegramProfileScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Настройки', style: TextStyle(color: Colors.white)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context), // Кнопка назад теперь работает!
+        ),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Верхний блок профиля (Аватарка и Имя)
+            Container(
+              color: const Color(0xFF517DA2),
+              width: double.infinity,
+              padding: const EdgeInsets.only(bottom: 24, left: 20, right: 20),
+              child: const Row(
+                children: [
+                  CircleAvatar(
+                    radius: 36,
+                    backgroundColor: Colors.white24,
+                    child: Text(
+                      'U',
+                      style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  SizedBox(width: 20),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Разработчик',
+                        style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'в сети',
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            title: Text(
-              chat["name"]!,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            subtitle: Text(
-              chat["message"]!,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis, // Скрывает длинный текст под троеточие
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-            ),
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  chat["time"]!,
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-                ),
-                const SizedBox(height: 6),
-                if (hasUnread)
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF52BE80), // Зеленый кружок непрочитанных сообщений
-                      shape: BoxShape.circle,
-                    ),
+            const SizedBox(height: 12),
+
+            // Блок «Аккаунт»
+            Container(
+              color: Colors.white,
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(left: 16, top: 12, bottom: 4),
                     child: Text(
-                      chat["unread"]!,
-                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                      'Аккаунт',
+                      style: TextStyle(color: Color(0xFF517DA2), fontWeight: FontWeight.bold, fontSize: 15),
                     ),
-                  )
-                else
-                  const SizedBox(height: 20),
-              ],
+                  ),
+                  ListTile(
+                    title: Text('+380 99 123 4567'),
+                    subtitle: Text('Нажмите, чтобы изменить номер телефона'),
+                  ),
+                  Divider(height: 1, indent: 16),
+                  ListTile(
+                    title: Text('@my_telegram_dev'),
+                    subtitle: Text('Имя пользователя'),
+                  ),
+                  Divider(height: 1, indent: 16),
+                  ListTile(
+                    title: Text('О себе'),
+                    subtitle: Text('Создаю свой собственный Telegram на Flutter 🚀'),
+                  ),
+                ],
+              ),
             ),
-            onTap: () {
-              // Здесь будет переход в сам чат
-            },
-          );
-        },
-      ),
-      // Фирменная круглая плавающая кнопка карандаша, как в ТГ
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF517DA2),
-        child: const Icon(Icons.edit, color: Colors.white),
-        onPressed: () {},
+            const SizedBox(height: 12),
+
+            // Блок «Настройки»
+            Container(
+              color: Colors.white,
+              child: const Column(
+                children: [
+                  ListTile(
+                    leading: Icon(Icons.notifications_none, color: Colors.grey),
+                    title: Text('Уведомления и звуки'),
+                  ),
+                  Divider(height: 1, indent: 64),
+                  ListTile(
+                    leading: Icon(Icons.lock_outline, color: Colors.grey),
+                    title: Text('Конфиденциальность'),
+                  ),
+                  Divider(height: 1, indent: 64),
+                  ListTile(
+                    leading: Icon(Icons.pie_chart_outline, color: Colors.grey),
+                    title: Text('Данные и память'),
+                  ),
+                  Divider(height: 1, indent: 64),
+                  ListTile(
+                    leading: Icon(Icons.chat_bubble_outline, color: Colors.grey),
+                    title: Text('Настройки чатов'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
